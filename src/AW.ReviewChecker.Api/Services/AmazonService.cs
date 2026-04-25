@@ -34,6 +34,24 @@ public class AmazonService : IAmazonService
         var product = ParseProduct(asin, productUrl, productHtml);
         var reviews = ParseReviews(reviewsHtml);
 
+        if (reviews.Count == 0)
+        {
+            if (LooksLikeBotOrCaptchaPage(reviewsHtml))
+            {
+                _logger.LogWarning(
+                    "Amazon reviews page appears to be blocked by anti-bot/captcha for ASIN {Asin}. Falling back to product page reviews.",
+                    asin);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "No reviews parsed from dedicated reviews page for ASIN {Asin}. Falling back to product page reviews.",
+                    asin);
+            }
+
+            reviews = ParseReviews(productHtml);
+        }
+
         return (product, reviews);
     }
 
@@ -182,6 +200,24 @@ public class AmazonService : IAmazonService
         }
 
         return reviews;
+    }
+
+    private static bool LooksLikeBotOrCaptchaPage(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html))
+            return false;
+
+        var probes = new[]
+        {
+            "robot check",
+            "enter the characters you see below",
+            "type the characters you see in this image",
+            "automated access to amazon data",
+            "api-services-support@amazon.com",
+            "validatecaptcha"
+        };
+
+        return probes.Any(p => html.Contains(p, StringComparison.OrdinalIgnoreCase));
     }
 
     // ──────────────────────────────────────────────────────────────────────────

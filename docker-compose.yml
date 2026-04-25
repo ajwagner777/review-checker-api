@@ -5,10 +5,18 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      # Set your OpenAI API key via the environment variable OPENAI_API_KEY
-      # before running: export OPENAI_API_KEY=sk-...
-      - OpenAI__ApiKey=${OPENAI_API_KEY:-}
-      - OpenAI__Model=${OPENAI_MODEL:-gpt-4o-mini}
+      # OPENAI_API_KEY is still supported as an override from your shell.
+      - OpenAI__ApiKey=${OPENAI_API_KEY:-${OpenAI__ApiKey:-}}
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src
+        - action: rebuild
+          path: ./Dockerfile
+        - action: rebuild
+          path: ./docker-compose.yml
     restart: unless-stopped

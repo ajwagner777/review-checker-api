@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-api",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/src/AW.ReviewChecker.Api/AW.ReviewChecker.Api.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

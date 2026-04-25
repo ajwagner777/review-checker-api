@@ -3,8 +3,28 @@ using AW.ReviewChecker.Api.Services;
 using Microsoft.OpenApi.Models;
 using DotNetEnv;
 
-// Load environment variables from .env file (if it exists)
-DotNetEnv.Env.Load();
+// Load environment variables from .env in the current or parent directories.
+var searchDir = Directory.GetCurrentDirectory();
+string? envPath = null;
+
+for (var i = 0; i < 6 && !string.IsNullOrEmpty(searchDir); i++)
+{
+    var candidate = Path.Combine(searchDir, ".env");
+    if (File.Exists(candidate))
+    {
+        envPath = candidate;
+        break;
+    }
+
+    var parent = Directory.GetParent(searchDir);
+    if (parent is null)
+        break;
+
+    searchDir = parent.FullName;
+}
+
+if (!string.IsNullOrEmpty(envPath))
+    DotNetEnv.Env.Load(envPath);
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -70,23 +70,47 @@ public class ReviewCheckerController : ControllerBase
             });
         }
 
-        var analyses = new List<ReviewAnalysis>();
+        var reviewsToAnalyze = reviews
+            .Where(r => r.Rating.StartsWith("5", StringComparison.OrdinalIgnoreCase))
+            .Take(10)
+            .ToList();
 
-        foreach (var review in reviews)
+        _logger.LogInformation(
+            "Analyzing {Count} 5-star reviews (capped at 10) out of {Total} total reviews.",
+            reviewsToAnalyze.Count, reviews.Count);
+
+        var analysisTasks = reviewsToAnalyze.Select(async review =>
         {
             var textToAnalyze = string.IsNullOrWhiteSpace(review.Body)
                 ? review.Title
                 : review.Body;
 
-            var (score, reasoning) = await _openAiService.AnalyzeReviewAsync(textToAnalyze);
+            int score;
+            string reasoning;
 
-            analyses.Add(new ReviewAnalysis
+            try
+            {
+                (score, reasoning) = await _openAiService.AnalyzeReviewAsync(textToAnalyze);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "OpenAI analysis failed for review {ReviewId}. Using neutral fallback score.",
+                    review.ReviewId);
+
+                score = 5;
+                reasoning = "AI analysis unavailable. Returned neutral score.";
+            }
+
+            return new ReviewAnalysis
             {
                 Review = review,
                 AiScore = score,
                 AiReasoning = reasoning
-            });
-        }
+            };
+        });
+
+        var analyses = (await Task.WhenAll(analysisTasks)).ToList();
 
         var averageScore = analyses.Count > 0
             ? Math.Round(analyses.Average(a => a.AiScore), 2)
