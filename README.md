@@ -26,14 +26,26 @@ An API written in C# (.NET 8) that pulls reviews for Amazon products and analyze
 git clone https://github.com/ajwagner777/aw-review-checker-api.git
 cd aw-review-checker-api
 
-# Set your OpenAI key (Windows PowerShell: $env:OpenAI__ApiKey = "sk-...")
-export OpenAI__ApiKey="sk-..."
+# Copy the example .env file and add your OpenAI API key
+cp .env.example .env
+# Edit .env and add your OpenAI API key
 
 # Run the API
 dotnet run --project src/AW.ReviewChecker.Api
 ```
 
+Alternatively, set the environment variable directly:
+```bash
+# Windows PowerShell
+$env:OpenAI__ApiKey = "sk-..."
+
+# macOS/Linux
+export OpenAI__ApiKey="sk-..."
+```
+
 The API will start on `http://localhost:5252` (or as configured). Open your browser to that URL to access the Swagger UI.
+
+**Note:** The `.env` file is automatically loaded by the application. See `.env.example` for available configuration options.
 
 ### Running with Docker
 

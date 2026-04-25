@@ -1,6 +1,10 @@
 using System.Reflection;
 using AW.ReviewChecker.Api.Services;
 using Microsoft.OpenApi.Models;
+using DotNetEnv;
+
+// Load environment variables from .env file (if it exists)
+DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
